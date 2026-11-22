@@ -1,4 +1,4 @@
-import { copyFileSync, mkdirSync } from "node:fs";
+import { copyFileSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -7,5 +7,12 @@ import { fileURLToPath } from "node:url";
 const botDir = dirname(fileURLToPath(import.meta.url));
 const outDir = process.env.MAKEFUN_OUTPUT_DIR ?? "out";
 
+// Validate the entry before copying: VIDEO.json must name a YouTube URL.
+const videoPath = join(botDir, "VIDEO.json");
+const video = JSON.parse(readFileSync(videoPath, "utf8"));
+if (typeof video.url !== "string" || !video.url.startsWith("https://www.youtube.com/")) {
+  throw new Error("VIDEO.json must carry a https://www.youtube.com/ url");
+}
+
 mkdirSync(outDir, { recursive: true });
-copyFileSync(join(botDir, "VIDEO.json"), join(outDir, "VIDEO.json"));
+copyFileSync(videoPath, join(outDir, "VIDEO.json"));
